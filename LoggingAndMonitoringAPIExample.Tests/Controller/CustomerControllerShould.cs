@@ -24,7 +24,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         {
             _customerService = new Mock<ICustomerService>();
 
-            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync()));
+            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync());
             _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<CustomerRequest>())).Returns(GetTestCustomerAsync());
             
             _customerController = new CustomerController(_customerService.Object);
