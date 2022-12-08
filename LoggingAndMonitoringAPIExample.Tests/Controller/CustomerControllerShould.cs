@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Castle.Core.Resource;
+using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Controllers;
 using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
@@ -23,8 +24,9 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         {
             _customerService = new Mock<ICustomerService>();
 
-            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns((GetTestCustomerAsync()));
-
+            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync()));
+            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<CustomerRequest>())).Returns(GetTestCustomerAsync());
+            
             _customerController = new CustomerController(_customerService.Object);
         }
 
@@ -39,7 +41,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(await GetTestCustomerAsync());
+            okResult.Value.Should().BeEquivalentTo(await GetTestCustomersAsync());
         }
 
         [Fact]
@@ -53,24 +55,24 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 Phone = "0000 1111 1111"
             };
 
-            var customerResponse = new CustomerResponse
-            {
-                Email = "Jane.Doe@example.com",
-                FirstName = "Jane",
-                LastName = "Doe",
-                Phone = "0000 1111 1111"
-            };
-            
+           
             var result = await _customerController.CreateCustomerAsync(customerRequest);
 
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(customerResponse);
+            okResult.Value.Should().BeEquivalentTo(await GetTestCustomerAsync());
+        }
+
+        private async Task<CustomerResponse> GetTestCustomerAsync()
+        {
+            var customer = new CustomerResponse { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" };
+
+            return await Task.FromResult(customer);
         }
 
 
-        private async Task<List<CustomerResponse>> GetTestCustomerAsync()
+        private async Task<List<CustomerResponse>> GetTestCustomersAsync()
         {
             var customers = new List<CustomerResponse>
             {
