@@ -8,6 +8,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
     {
         public Task<IEnumerable<Customer>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters);
         public Task<Customer> CreateCustomerAsync(Customer customer);
+        public Task<IEnumerable<Customer>> CreateCustomersAsync(IEnumerable<Customer> customers);
         public Task<Customer?> GetCustomerAsync(int customerId);
         public Task<bool> CustomerExistsAsync(int customerId);
     }

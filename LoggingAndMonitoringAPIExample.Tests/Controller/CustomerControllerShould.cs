@@ -8,6 +8,7 @@ using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
+using LoggingAndMonitoringAPIExample.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using System;
@@ -28,9 +29,9 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         {
             _customerService = new Mock<ICustomerService>();
 
-            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync());
-            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>())).Returns(GetTestCustomerAsync());
-            _customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>())).Returns(GetTestCustomerAsync());
+            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(CustomerMocks.GetTestCustomersAsync());
+            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>())).Returns(CustomerMocks.GetTestCustomerAsync());
+            _customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>())).Returns(CustomerMocks.GetTestCustomerAsync());
             _customerService.Setup(service => service.CustomerExistsAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
                         
             if (_mapper == null)
@@ -57,7 +58,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(await GetTestCustomersAsync());
+            okResult.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
         }
 
         [Fact]
@@ -86,7 +87,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             var createdAtRouteResult = result.Result as CreatedAtRouteResult;
             
             createdAtRouteResult.StatusCode.Should().Be(201);
-            var cus = await GetTestCustomerAsync();
+            var cus = await CustomerMocks.GetTestCustomerAsync();
             createdAtRouteResult.Value.Should().BeEquivalentTo(expected);            
         }
 
@@ -98,28 +99,10 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(await GetTestCustomerAsync());
+            okResult.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomerAsync());
         }
         
 
-        private async Task<Customer> GetTestCustomerAsync()
-        {
-            var customer = new Customer { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" };
-
-            return await Task.FromResult(customer);
-        }
-
-
-        private async Task<IEnumerable<Customer>> GetTestCustomersAsync()
-        {
-            var customers = new List<Customer>
-            {
-                new Customer { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" },
-                new Customer { Id = 2, Email = "Joe.Doe@example.com", FirstName = "Joe", LastName = "Doe", Phone = "0000 1111 1112" },
-                new Customer { Id = 3, Email = "Max.Doe@example.com", FirstName = "Max", LastName = "Moe", Phone = "0000 1111 1113" },
-                new Customer { Id = 4, Email = "Lisa.Doe@example.com", FirstName = "Lisa", LastName = "Moe", Phone = "0000 1111 1114" }
-            };
-            return await Task.FromResult(customers);
-        }
+ 
     }
 }

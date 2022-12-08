@@ -125,5 +125,21 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
             var result = await _customerService.CustomerExistsAsync(customerId);
             result.Should().Be(true);
         }
+
+        [Fact]
+        public async Task CreateCustomersAsyncShould()
+        {
+            IEnumerable<Customer> customers = new List<Customer>
+            {
+                new Customer { Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" },
+                new Customer {  Email = "Joe.Doe@example.com", FirstName = "Joe", LastName = "Doe", Phone = "0000 1111 1112" },
+                new Customer { Email = "Max.Doe@example.com", FirstName = "Max", LastName = "Moe", Phone = "0000 1111 1113" },
+                new Customer {  Email = "Lisa.Doe@example.com", FirstName = "Lisa", LastName = "Moe", Phone = "0000 1111 1114" }
+            };
+
+            var result = await _customerService.CreateCustomersAsync(customers);
+
+            result.Should().HaveCount(4);
+        }
     }
 }

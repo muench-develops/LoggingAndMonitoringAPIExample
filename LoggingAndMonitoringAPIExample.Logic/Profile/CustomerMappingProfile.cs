@@ -19,6 +19,8 @@ namespace LoggingAndMonitoringAPIExample.Logic
             CreateMap<Customer, CustomerForCreationDto>();
             CreateMap<CustomerForCreationDto, CustomerDto>();
             CreateMap<CustomerDto, CustomerForCreationDto>();
+            CreateMap<IEnumerable<CustomerForCreationDto>, IEnumerable<CustomerDto>>();
+            CreateMap<IEnumerable<CustomerDto>, IEnumerable<CustomerForCreationDto>>();
         }
     }
 }

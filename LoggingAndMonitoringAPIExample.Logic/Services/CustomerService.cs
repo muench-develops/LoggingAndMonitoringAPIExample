@@ -63,7 +63,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
 
             return collection;
         }
-        
+
         public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
             var result = await _customerContext.Customers.AddAsync(customer);
@@ -80,6 +80,12 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
         public async Task<bool> CustomerExistsAsync(int customerId)
         {
             return await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId) != null;
+        }
+
+        public async Task<IEnumerable<Customer>> CreateCustomersAsync(IEnumerable<Customer> customers)
+        {
+            await _customerContext.Customers.AddRangeAsync(customers);
+            return customers;
         }
     }
 }
