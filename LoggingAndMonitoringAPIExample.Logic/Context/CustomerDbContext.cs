@@ -1,4 +1,4 @@
-﻿using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+﻿using LoggingAndMonitoringAPIExample.Logic.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace LoggingAndMonitoringAPIExample.Logic.Context

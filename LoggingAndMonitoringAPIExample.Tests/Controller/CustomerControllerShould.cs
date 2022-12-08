@@ -1,8 +1,11 @@
-﻿using Castle.Core.Resource;
+﻿using AutoMapper;
+using Castle.Core.Resource;
 using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Controllers;
+using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
-using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Entities;
+using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Params;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +21,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
     public class CustomerControllerShould
     {
         private readonly Mock<ICustomerService> _customerService;
+        private readonly IMapper _mapper;
         private readonly CustomerController _customerController;
 
         public CustomerControllerShould()
@@ -25,9 +29,19 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             _customerService = new Mock<ICustomerService>();
 
             _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync());
-            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<CustomerRequest>())).Returns(GetTestCustomerAsync());
-            
-            _customerController = new CustomerController(_customerService.Object);
+            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>())).Returns(GetTestCustomerAsync());
+
+            if (_mapper == null)
+            {
+                var mappingConfig = new MapperConfiguration(mc =>
+                {
+                    mc.AddProfile(new SourceMappingProfile());
+                });
+                IMapper mapper = mappingConfig.CreateMapper();
+                _mapper = mapper;
+            }
+
+            _customerController = new CustomerController(_customerService.Object, _mapper);
         }
 
         [Fact]
@@ -47,7 +61,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         [Fact]
         public async Task CreateCustomerAsyncShould()
         {
-            var customerRequest = new CustomerRequest
+            var customerRequest = new CustomerForCreationDto
             {
                 Email = "Jane.Doe@example.com",
                 FirstName = "Jane",
@@ -64,22 +78,22 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             okResult.Value.Should().BeEquivalentTo(await GetTestCustomerAsync());
         }
 
-        private async Task<CustomerResponse> GetTestCustomerAsync()
+        private async Task<Customer> GetTestCustomerAsync()
         {
-            var customer = new CustomerResponse { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" };
+            var customer = new Customer { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" };
 
             return await Task.FromResult(customer);
         }
 
 
-        private async Task<List<CustomerResponse>> GetTestCustomersAsync()
+        private async Task<List<Customer>> GetTestCustomersAsync()
         {
-            var customers = new List<CustomerResponse>
+            var customers = new List<Customer>
             {
-                new CustomerResponse { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" },
-                new CustomerResponse { Id = 2, Email = "Joe.Doe@example.com", FirstName = "Joe", LastName = "Doe", Phone = "0000 1111 1112" },
-                new CustomerResponse { Id = 3, Email = "Max.Doe@example.com", FirstName = "Max", LastName = "Moe", Phone = "0000 1111 1113" },
-                new CustomerResponse { Id = 4, Email = "Lisa.Doe@example.com", FirstName = "Lisa", LastName = "Moe", Phone = "0000 1111 1114" }
+                new Customer { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" },
+                new Customer { Id = 2, Email = "Joe.Doe@example.com", FirstName = "Joe", LastName = "Doe", Phone = "0000 1111 1112" },
+                new Customer { Id = 3, Email = "Max.Doe@example.com", FirstName = "Max", LastName = "Moe", Phone = "0000 1111 1113" },
+                new Customer { Id = 4, Email = "Lisa.Doe@example.com", FirstName = "Lisa", LastName = "Moe", Phone = "0000 1111 1114" }
             };
             return await Task.FromResult(customers);
         }

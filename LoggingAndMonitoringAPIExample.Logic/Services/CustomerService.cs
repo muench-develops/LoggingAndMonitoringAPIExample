@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using LoggingAndMonitoringAPIExample.Logic.Context;
-using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Entities;
+using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Params;
 using Microsoft.EntityFrameworkCore;
 using System.Numerics;
@@ -11,30 +12,20 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
     {
         private readonly CustomerDbContext _customerContext;
         private readonly MapperConfiguration _config;
-        private readonly IMapper _mapper;
+
 
         public CustomerService(CustomerDbContext customerContext)
         {
             _customerContext = customerContext;
-            _config = new MapperConfiguration(cfg => {
-                cfg.CreateMap<Customer, CustomerResponse>();
-                cfg.CreateMap<CustomerResponse, Customer>();
-                cfg.CreateMap<CustomerRequest, Customer>();
-                cfg.CreateMap<Customer, CustomerRequest>();
-                cfg.CreateMap<CustomerRequest, CustomerResponse>();
-                cfg.CreateMap<CustomerResponse, CustomerRequest>();
-            });
-            _mapper = _config.CreateMapper();
         }
 
-        public async Task<List<CustomerResponse>> GetAllCustomersAsync()
+        public async Task<List<Customer>> GetAllCustomersAsync()
         {
             var customers = await _customerContext.Customers.ToListAsync();
-            var customersResponse = _mapper.Map<List<CustomerResponse>>(customers);
-            return customersResponse;
+            return customers;
         }
 
-        public async Task<List<CustomerResponse>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters)
+        public async Task<List<Customer>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters)
         {
 
             var collection = _customerContext.Customers as IQueryable<Customer>;
@@ -45,7 +36,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
                 .Take(customerResourceParameters.PageSize)
                 .ToListAsync();
 
-            return _mapper.Map<List<CustomerResponse>>(result);
+            return result;
         }
 
         private static IQueryable<Customer> Filter(CustomerResourceParameters customerResourceParameters, IQueryable<Customer> collection)
@@ -74,13 +65,12 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
 
             return collection;
         }
-
-        public async Task<CustomerResponse> CreateCustomerAsync(CustomerRequest customerRequest)
+        
+        public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
-            var customer = _mapper.Map<Customer>(customerRequest);
             var result = await _customerContext.Customers.AddAsync(customer);
             await _customerContext.SaveChangesAsync();
-            return _mapper.Map<CustomerResponse>(result.Entity);
+            return result.Entity;
         }
 
     }

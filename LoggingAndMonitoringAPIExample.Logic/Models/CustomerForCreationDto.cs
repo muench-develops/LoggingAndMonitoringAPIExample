@@ -1,17 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace LoggingAndMonitoringAPIExample.Logic.Models.Customer
+namespace LoggingAndMonitoringAPIExample.Logic.Models
 {
-    public class Customer
+    public class CustomerForCreationDto
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required]
         public string FirstName { get; set; }
 

@@ -1,6 +1,8 @@
 using AutoMapper;
+using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
-using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Entities;
+using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,8 +18,15 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 
 //Add in Memory Db
 builder.Services.AddDbContext<CustomerDbContext>(options => options.UseInMemoryDatabase("CustomerInMemoryDb"));
-
 var app = builder.Build();
+
+//Add Automapper
+var mapperConfig = new MapperConfiguration(cfg =>
+{
+    cfg.AddProfile(new SourceMappingProfile());
+});
+IMapper mapper = mapperConfig.CreateMapper();
+builder.Services.AddSingleton(mapper);
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

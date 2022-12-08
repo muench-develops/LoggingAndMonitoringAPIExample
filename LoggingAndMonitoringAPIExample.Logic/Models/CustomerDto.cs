@@ -1,21 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LoggingAndMonitoringAPIExample.Logic.Models.Customer
+namespace LoggingAndMonitoringAPIExample.Logic.Models
 {
-    public class CustomerRequest
+    public class CustomerDto
     {
-        [Required]
+        public int Id { get; set; }
         public string FirstName { get; set; }
-
-        [Required]
         public string LastName { get; set; }
-
-        [Required]
-        [EmailAddress]
         public string Email { get; set; }
-
-        [Required]
-        [Phone]
         public string Phone { get; set; }
     }
 }

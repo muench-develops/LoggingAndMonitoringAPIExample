@@ -1,5 +1,6 @@
 ﻿using LoggingAndMonitoringAPIExample.Logic.Context;
-using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Entities;
+using LoggingAndMonitoringAPIExample.Logic.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

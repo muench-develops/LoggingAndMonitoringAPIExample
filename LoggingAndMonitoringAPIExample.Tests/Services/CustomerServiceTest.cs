@@ -1,5 +1,6 @@
 ﻿using FluentAssertions;
-using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Entities;
+using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Params;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Context;
@@ -63,7 +64,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
 
             var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
 
-            customers[0].Should().BeEquivalentTo(new CustomerResponse
+            customers[0].Should().BeEquivalentTo(new CustomerDto
             {
                 Id = 3,
                 Email = "Max.Doe@example.com",
@@ -71,7 +72,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
                 LastName = "Moe",
                 Phone = "0000 1111 1113"
             });
-            customers[1].Should().BeEquivalentTo(new CustomerResponse
+            customers[1].Should().BeEquivalentTo(new CustomerDto
             {
                 Id = 4,
                 Email = "Lisa.Doe@example.com",
@@ -84,7 +85,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         [Fact]
         public async Task CreateCustomerAsyncShould()
         {
-            var customer = new CustomerRequest
+            var customer = new Customer
             {
                 Email = "test@test.de",
                 FirstName = "test",
@@ -94,7 +95,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
 
             var result = await _customerService.CreateCustomerAsync(customer);
 
-            result.Should().BeEquivalentTo(new CustomerResponse
+            result.Should().BeEquivalentTo(new CustomerDto
             {
                 Id = 5,
                 Email = "test@test.de",
