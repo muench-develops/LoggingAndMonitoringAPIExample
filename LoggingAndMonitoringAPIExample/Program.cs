@@ -1,3 +1,9 @@
+using AutoMapper;
+using LoggingAndMonitoringAPIExample.Logic.Context;
+using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Services;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -6,8 +12,10 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
 
-
+//Add in Memory Db
+builder.Services.AddDbContext<CustomerDbContext>(options => options.UseInMemoryDatabase("CustomerInMemoryDb"));
 
 var app = builder.Build();
 

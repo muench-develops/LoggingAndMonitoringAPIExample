@@ -1,7 +1,7 @@
-﻿using LoggingAndMonitoringAPIExample.Models.Customer;
-using LoggingAndMonitoringAPIExample.Params;
-using LoggingAndMonitoringAPIExample.Services;
+﻿using LoggingAndMonitoringAPIExample.Logic.Models.Customer;
+using LoggingAndMonitoringAPIExample.Logic.Params;
 using Microsoft.AspNetCore.Mvc;
+using LoggingAndMonitoringAPIExample.Logic.Services;
 
 namespace LoggingAndMonitoringAPIExample.Controllers
 {
@@ -17,9 +17,23 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         }
         
         [HttpGet]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        
         public async Task<ActionResult<List<CustomerResponse>>> GetAllCustomerAsync([FromQuery] CustomerResourceParameters customerResourceParameters)
         {
-            return  await _customerService.GetAllCustomersAsync(customerResourceParameters);
+            var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
+
+            return customers.Any() ? Ok(customers) : BadRequest();
+        }
+
+        [HttpPost]
+        [ProducesResponseType(201)]
+        [ProducesResponseType(400)]
+        public async Task<ActionResult<CustomerResponse>> CreateCustomerAsync([FromBody] CustomerRequest customerRequest)
+        {
+            var customer = await _customerService.CreateCustomerAsync(customerRequest);
+            return customer is not null ? Ok(customer) : BadRequest();
         }
     }
 }
