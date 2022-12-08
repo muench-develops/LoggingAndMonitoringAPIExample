@@ -1,7 +1,7 @@
 ﻿using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
-using LoggingAndMonitoringAPIExample.Logic.Params;
+using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Context;
 using System;
@@ -27,7 +27,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         public async Task GetAllCustomersAsyncShouldAll()
         {
             var customers = await _customerService.GetAllCustomersAsync(new CustomerResourceParameters());
-            customers.Count.Should().Be(4);
+            customers.ToList().Count.Should().Be(4);
         }
 
         [Fact]
@@ -39,7 +39,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
             };
 
             var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
-            customers.Count.Should().Be(1);
+            customers.ToList().Should().HaveCount(1);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
             };
 
             var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
-            customers.Count.Should().Be(2);
+            customers.ToList().Should().HaveCount(2);
         }
 
         [Fact]
@@ -63,8 +63,9 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
             };
 
             var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
+            var result = customers.ToArray();
 
-            customers[0].Should().BeEquivalentTo(new CustomerDto
+            result[0].Should().BeEquivalentTo(new CustomerDto
             {
                 Id = 3,
                 Email = "Max.Doe@example.com",
@@ -72,7 +73,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
                 LastName = "Moe",
                 Phone = "0000 1111 1113"
             });
-            customers[1].Should().BeEquivalentTo(new CustomerDto
+            result[1].Should().BeEquivalentTo(new CustomerDto
             {
                 Id = 4,
                 Email = "Lisa.Doe@example.com",
@@ -103,6 +104,26 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
                 LastName = "test",
                 Phone = "0000 1111 2222"
             });
+        }
+
+        [Fact]
+        public async Task GetCustomerAsyncShould()
+        {
+            var customerId = 1;
+
+            var result = await _customerService.GetCustomerAsync(customerId);
+
+            result.Should().BeEquivalentTo(
+                new Customer { Id = 1, Email = "Jane.Doe@example.com", FirstName = "Jane", LastName = "Doe", Phone = "0000 1111 1111" }
+            );
+        }
+
+        [Fact]
+        public async Task CustomerExistsAsyncShould()
+        {
+            var customerId = 1;
+            var result = await _customerService.CustomerExistsAsync(customerId);
+            result.Should().Be(true);
         }
     }
 }

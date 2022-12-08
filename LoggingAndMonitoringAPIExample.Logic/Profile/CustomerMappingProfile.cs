@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace LoggingAndMonitoringAPIExample.Logic
 {
-    public class SourceMappingProfile : Profile
+    public class CustomerMappingProfile : Profile
     {
-        public SourceMappingProfile()
+        public CustomerMappingProfile()
         {
             CreateMap<Customer, CustomerDto>();
             CreateMap<CustomerDto, Customer>();

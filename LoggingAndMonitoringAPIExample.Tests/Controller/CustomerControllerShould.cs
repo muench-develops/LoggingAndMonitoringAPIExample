@@ -6,7 +6,7 @@ using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
-using LoggingAndMonitoringAPIExample.Logic.Params;
+using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -22,7 +22,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
     {
         private readonly Mock<ICustomerService> _customerService;
         private readonly IMapper _mapper;
-        private readonly CustomerController _customerController;
+        private readonly CustomersController _customerController;
 
         public CustomerControllerShould()
         {
@@ -30,24 +30,26 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
             _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(GetTestCustomersAsync());
             _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>())).Returns(GetTestCustomerAsync());
-
+            _customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>())).Returns(GetTestCustomerAsync());
+            _customerService.Setup(service => service.CustomerExistsAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
+                        
             if (_mapper == null)
             {
                 var mappingConfig = new MapperConfiguration(mc =>
                 {
-                    mc.AddProfile(new SourceMappingProfile());
+                    mc.AddProfile(new CustomerMappingProfile());
                 });
                 IMapper mapper = mappingConfig.CreateMapper();
                 _mapper = mapper;
             }
 
-            _customerController = new CustomerController(_customerService.Object, _mapper);
+            _customerController = new CustomersController(_customerService.Object, _mapper);
         }
 
         [Fact]
         public async Task GetAllCustomersAsyncShouldReturnAllCustomers()
         {
-            var result = await _customerController.GetAllCustomerAsync(new CustomerResourceParameters());
+            var result = await _customerController.GetCustomers(new CustomerResourceParameters());
 
             //result should be 200
             
@@ -69,14 +71,36 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 Phone = "0000 1111 1111"
             };
 
-           
-            var result = await _customerController.CreateCustomerAsync(customerRequest);
+            var expected = new Customer
+            {
+                Id = 1,
+                Email = "Jane.Doe@example.com",
+                FirstName = "Jane",
+                LastName = "Doe",
+                Phone = "0000 1111 1111"
+            };
+
+            var result = await _customerController.CreateCustomer(customerRequest);
+
+            result.Result.Should().BeOfType<CreatedAtRouteResult>();
+            var createdAtRouteResult = result.Result as CreatedAtRouteResult;
+            
+            createdAtRouteResult.StatusCode.Should().Be(201);
+            var cus = await GetTestCustomerAsync();
+            createdAtRouteResult.Value.Should().BeEquivalentTo(expected);            
+        }
+
+        [Fact]
+        public async Task GetCustomerAsync()
+        {
+            var result = await _customerController.GetCustomer(1);
 
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult.StatusCode.Should().Be(200);
             okResult.Value.Should().BeEquivalentTo(await GetTestCustomerAsync());
         }
+        
 
         private async Task<Customer> GetTestCustomerAsync()
         {
@@ -86,7 +110,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         }
 
 
-        private async Task<List<Customer>> GetTestCustomersAsync()
+        private async Task<IEnumerable<Customer>> GetTestCustomersAsync()
         {
             var customers = new List<Customer>
             {

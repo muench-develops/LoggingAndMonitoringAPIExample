@@ -2,7 +2,7 @@
 using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
-using LoggingAndMonitoringAPIExample.Logic.Params;
+using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 
@@ -11,21 +11,19 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
     public class CustomerService : ICustomerService
     {
         private readonly CustomerDbContext _customerContext;
-        private readonly MapperConfiguration _config;
-
 
         public CustomerService(CustomerDbContext customerContext)
         {
             _customerContext = customerContext;
         }
 
-        public async Task<List<Customer>> GetAllCustomersAsync()
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
         {
             var customers = await _customerContext.Customers.ToListAsync();
             return customers;
         }
 
-        public async Task<List<Customer>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters)
+        public async Task<IEnumerable<Customer>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters)
         {
 
             var collection = _customerContext.Customers as IQueryable<Customer>;
@@ -73,5 +71,15 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
             return result.Entity;
         }
 
+        public async Task<Customer?> GetCustomerAsync(int id)
+        {
+            var result = await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == id);
+            return result;
+        }
+
+        public async Task<bool> CustomerExistsAsync(int customerId)
+        {
+            return await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId) != null;
+        }
     }
 }

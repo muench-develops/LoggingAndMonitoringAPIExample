@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace LoggingAndMonitoringAPIExample.Logic.Params
+namespace LoggingAndMonitoringAPIExample.Logic.Parameters
 {
     public class CustomerResourceParameters
     {
