@@ -14,7 +14,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
 
         public CustomerService(CustomerDbContext customerContext)
         {
-            _customerContext = customerContext;
+            _customerContext = customerContext ?? throw new ArgumentNullException(nameof(customerContext));
         }
 
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync()

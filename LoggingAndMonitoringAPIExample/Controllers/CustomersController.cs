@@ -16,8 +16,8 @@ namespace LoggingAndMonitoringAPIExample.Controllers
 
         public CustomersController(ICustomerService customerService, IMapper mapper)
         {
-            _customerService = customerService;
-            _mapper = mapper;
+            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         [HttpGet]
