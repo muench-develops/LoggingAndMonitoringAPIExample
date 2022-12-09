@@ -4,7 +4,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Parameters
 {
     public class CustomerResourceParameters
     {
-        const int maxPageSize = 20;
+        const int MaxPageSize = 20;
         public string? LastName { get; set; }
         public string? FirstName { get; set; }
         [EmailAddress]
@@ -19,7 +19,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Parameters
         public int PageSize
         {
             get => _pageSize;
-            set => _pageSize = (value > maxPageSize) ? maxPageSize : value;
+            set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
         }
 
     }

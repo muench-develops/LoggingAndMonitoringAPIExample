@@ -1,10 +1,7 @@
-﻿using AutoMapper;
-using LoggingAndMonitoringAPIExample.Logic.Context;
+﻿using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
-using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using Microsoft.EntityFrameworkCore;
-using System.Numerics;
 
 namespace LoggingAndMonitoringAPIExample.Logic.Services
 {
@@ -15,12 +12,6 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
         public CustomerService(CustomerDbContext customerContext)
         {
             _customerContext = customerContext ?? throw new ArgumentNullException(nameof(customerContext));
-        }
-
-        public async Task<IEnumerable<Customer>> GetAllCustomersAsync()
-        {
-            var customers = await _customerContext.Customers.ToListAsync();
-            return customers;
         }
 
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync(CustomerResourceParameters customerResourceParameters)
@@ -77,7 +68,7 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
             return result;
         }
 
-        public async Task<bool> CustomerExistsAsync(int customerId)
+        public async Task<bool> GetExistsAsync(int customerId)
         {
             return await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId) != null;
         }

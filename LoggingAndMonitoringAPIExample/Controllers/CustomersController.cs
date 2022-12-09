@@ -9,12 +9,12 @@ namespace LoggingAndMonitoringAPIExample.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CustomersController : ControllerBase
+    public class CustomerSController : ControllerBase
     {
         private readonly ICustomerService _customerService;
         private readonly IMapper _mapper;
 
-        public CustomersController(ICustomerService customerService, IMapper mapper)
+        public CustomerSController(ICustomerService customerService, IMapper mapper)
         {
             _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
@@ -37,7 +37,7 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         {
             var customer = await _customerService.GetCustomerAsync(customerId);
 
-            if (!await _customerService.CustomerExistsAsync(customerId))
+            if (!await _customerService.GetExistsAsync(customerId))
             {
                 return NotFound();
             }
@@ -49,9 +49,10 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         [Produces("application/json", "application/xml", Type = typeof(CustomerDto))]
         public async Task<ActionResult<CustomerDto>> CreateCustomer([FromBody] CustomerForCreationDto customerRequest)
         {
-            var customer = await _customerService.CreateCustomerAsync(_mapper.Map<Customer>(customerRequest));
+            var customerEntity = _mapper.Map<Customer>(customerRequest);
+            var customer = await _customerService.CreateCustomerAsync(customerEntity);
 
-            if (await _customerService.CustomerExistsAsync(customer.Id))
+            if (await _customerService.GetExistsAsync(customer.Id))
             {
                 var customerToReturn = _mapper.Map<CustomerDto>(customer);
                 return CreatedAtRoute("GetCustomer", new

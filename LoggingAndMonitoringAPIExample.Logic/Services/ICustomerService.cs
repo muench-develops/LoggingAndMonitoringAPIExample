@@ -1,5 +1,4 @@
 ﻿using LoggingAndMonitoringAPIExample.Logic.Entities;
-using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
 
 namespace LoggingAndMonitoringAPIExample.Logic.Services
@@ -10,6 +9,6 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
         public Task<Customer> CreateCustomerAsync(Customer customer);
         public Task<IEnumerable<Customer>> CreateCustomersAsync(IEnumerable<Customer> customers);
         public Task<Customer?> GetCustomerAsync(int customerId);
-        public Task<bool> CustomerExistsAsync(int customerId);
+        public Task<bool> GetExistsAsync(int customerId);
     }
 }

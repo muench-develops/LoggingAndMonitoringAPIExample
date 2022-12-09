@@ -1,6 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace LoggingAndMonitoringAPIExample.Logic.Models
+﻿namespace LoggingAndMonitoringAPIExample.Logic.Models
 {
     public class CustomerDto
     {

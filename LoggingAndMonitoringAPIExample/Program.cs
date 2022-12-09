@@ -1,13 +1,9 @@
 using AutoMapper;
 using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
-using LoggingAndMonitoringAPIExample.Logic.Entities;
-using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Services;
-using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,7 +28,7 @@ var mapperConfig = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile(new CustomerMappingProfile());
 });
-IMapper mapper = mapperConfig.CreateMapper();
+var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
 //Add in Memory Db

@@ -4,25 +4,19 @@ using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Context;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Services
 {
     public class CustomerServiceTest : IClassFixture<CustomerSeedDataFixture>
     {
         private readonly ICustomerService _customerService;
-        CustomerSeedDataFixture customerSeedDataFixture;
 
-        public CustomerServiceTest(CustomerSeedDataFixture customerSeedDataFixture)
+        public CustomerServiceTest()
         {
-            this.customerSeedDataFixture = customerSeedDataFixture;
-            _customerService = new CustomerService(customerSeedDataFixture.CustomerDbContext);
+            var customerSeedDataFixture = new CustomerSeedDataFixture();
+            _customerService = new CustomerService(customerSeedDataFixture.DbContext);
         }
-
+        
         [Fact]
         public async Task GetAllCustomersAsyncShouldAll()
         {
@@ -119,10 +113,10 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task CustomerExistsAsyncShould()
+        public async Task GetExistsAsyncShould()
         {
             var customerId = 1;
-            var result = await _customerService.CustomerExistsAsync(customerId);
+            var result = await _customerService.GetExistsAsync(customerId);
             result.Should().Be(true);
         }
 
@@ -141,5 +135,6 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
 
             result.Should().HaveCount(4);
         }
+        
     }
 }

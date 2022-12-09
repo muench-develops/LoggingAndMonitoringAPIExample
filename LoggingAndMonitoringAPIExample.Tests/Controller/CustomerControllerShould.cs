@@ -1,9 +1,7 @@
 ﻿using AutoMapper;
-using Castle.Core.Resource;
 using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Controllers;
 using LoggingAndMonitoringAPIExample.Logic;
-using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
@@ -11,40 +9,48 @@ using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Controller
 {
     public class CustomerControllerShould
     {
-        private readonly Mock<ICustomerService> _customerService;
         private readonly IMapper _mapper;
-        private readonly CustomersController _customerController;
+        private readonly CustomerSController _customerController;
 
         public CustomerControllerShould()
         {
-            _customerService = new Mock<ICustomerService>();
+            Mock<ICustomerService> customerService = new();
 
-            _customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>())).Returns(CustomerMocks.GetTestCustomersAsync());
-            _customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>())).Returns(CustomerMocks.GetTestCustomerAsync());
-            _customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>())).Returns(CustomerMocks.GetTestCustomerAsync());
-            _customerService.Setup(service => service.CustomerExistsAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
-                        
+            ServiceSetup(customerService);
+
             if (_mapper == null)
             {
                 var mappingConfig = new MapperConfiguration(mc =>
                 {
                     mc.AddProfile(new CustomerMappingProfile());
                 });
-                IMapper mapper = mappingConfig.CreateMapper();
+                var mapper = mappingConfig.CreateMapper();
                 _mapper = mapper;
             }
 
-            _customerController = new CustomersController(_customerService.Object, _mapper);
+            _customerController = new CustomerSController(customerService.Object, _mapper);
+        }
+
+        private static void ServiceSetup(Mock<ICustomerService> customerService)
+        {
+            customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>()))
+                .Returns(CustomerMocks.GetTestCustomersAsync());
+            customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>()))
+                .Returns(CustomerMocks.GetTestCustomerAsync());
+            customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>()))
+                .Returns(CustomerMocks.GetTestCustomerAsync());
+            // return null if id is 0
+            customerService.Setup(service => service.GetCustomerAsync(It.Is<int>(id => id == 0)))
+                .Returns(Task.FromResult<Customer>(null));
+            // return null if id is 0 in GetExistsAsync
+            customerService.Setup(service => service.GetExistsAsync(It.Is<int>(id => id == 0)))
+                .Returns(Task.FromResult(false));
+            customerService.Setup(service => service.GetExistsAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
         }
 
         [Fact]
@@ -57,8 +63,8 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             //Assert
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
-            okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
+            okResult?.StatusCode.Should().Be(200);
+            okResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
         }
 
         [Fact]
@@ -86,9 +92,8 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             result.Result.Should().BeOfType<CreatedAtRouteResult>();
             var createdAtRouteResult = result.Result as CreatedAtRouteResult;
             
-            createdAtRouteResult.StatusCode.Should().Be(201);
-            var cus = await CustomerMocks.GetTestCustomerAsync();
-            createdAtRouteResult.Value.Should().BeEquivalentTo(expected);            
+            createdAtRouteResult?.StatusCode.Should().Be(201);
+            createdAtRouteResult?.Value.Should().BeEquivalentTo(expected);            
         }
 
         [Fact]
@@ -98,11 +103,19 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
-            okResult.StatusCode.Should().Be(200);
-            okResult.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomerAsync());
+            okResult?.StatusCode.Should().Be(200);
+            okResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomerAsync());
         }
-        
 
- 
+        [Fact]
+
+        public async Task GetCustomerShouldFail()
+        {
+            var result = await _customerController.GetCustomer(0);
+
+            result.Result.Should().BeOfType<NotFoundResult>();
+            var notFoundResult = result.Result as NotFoundResult;
+            notFoundResult?.StatusCode.Should().Be(404);
+        }
     }
 }
