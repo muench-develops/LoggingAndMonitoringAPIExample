@@ -8,12 +8,11 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
 builder.Services.AddControllers(cfg =>
 {
     cfg.ReturnHttpNotAcceptable = true;
-}
-).AddXmlDataContractSerializerFormatters();
+})
+.AddXmlDataContractSerializerFormatters();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -21,9 +20,17 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My Api", Version = "v1" });
 });
+
+builder.Services.AddLogging(loggingBuilder =>
+{
+    loggingBuilder.AddConsole();
+    loggingBuilder.AddDebug();
+    loggingBuilder.AddEventSourceLogger();
+});
+
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
-//Add Automapper
+// Add Automapper
 var mapperConfig = new MapperConfiguration(cfg =>
 {
     cfg.AddProfile(new CustomerMappingProfile());
@@ -31,7 +38,7 @@ var mapperConfig = new MapperConfiguration(cfg =>
 var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
-//Add in Memory Db
+// Add in Memory Db
 builder.Services.AddDbContext<CustomerDbContext>(options => options.UseInMemoryDatabase("CustomerInMemoryDb"));
 var app = builder.Build();
 
@@ -56,6 +63,8 @@ else
         });
     });
 }
+
+app.UseResponseCaching();
 
 app.UseHttpsRedirection();
 

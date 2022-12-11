@@ -7,6 +7,7 @@ using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Controller
@@ -18,6 +19,9 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         public CustomerCollectionsControllerShould()
         {
             Mock<ICustomerService> customerService = new();
+            Mock<ILoggerFactory> loggerFactory = new();
+            // Setup loggerFactory
+            loggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger<CustomerCollectionsController>>().Object);
             customerService.Setup(service => service.CreateCustomersAsync(It.IsAny<IEnumerable<Customer>>())).Returns(CustomerMocks.GetTestCustomersAsync());
             
             if (_mapper == null)
@@ -30,7 +34,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 _mapper = mapper;
             }
             
-            _customerCollectionController = new CustomerCollectionsController(customerService.Object, _mapper);
+            _customerCollectionController = new CustomerCollectionsController(customerService.Object, _mapper, loggerFactory.Object);
         }
 
         [Fact]

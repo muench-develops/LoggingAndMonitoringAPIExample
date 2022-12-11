@@ -4,17 +4,22 @@ using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Context;
+using Microsoft.Extensions.Logging;
+using Moq;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Services
 {
-    public class CustomerServiceTest : IClassFixture<CustomerSeedDataFixture>
+    public class CustomerServiceShould : IClassFixture<CustomerSeedDataFixture>
     {
         private readonly ICustomerService _customerService;
 
-        public CustomerServiceTest()
+        public CustomerServiceShould()
         {
             var customerSeedDataFixture = new CustomerSeedDataFixture();
-            _customerService = new CustomerService(customerSeedDataFixture.DbContext);
+            Mock<ILoggerFactory> loggerFactory = new();
+            loggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            
+            _customerService = new CustomerService(customerSeedDataFixture.DbContext, loggerFactory.Object);
         }
         
         [Fact]

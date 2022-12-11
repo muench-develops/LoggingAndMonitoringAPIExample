@@ -8,6 +8,8 @@ using LoggingAndMonitoringAPIExample.Logic.Parameters;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Moq;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Controller
@@ -15,13 +17,22 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
     public class CustomerControllerShould
     {
         private readonly IMapper _mapper;
-        private readonly CustomerSController _customerController;
-
+        private readonly CustomerController _customerController;
+        //Mock loggerFactory
         public CustomerControllerShould()
         {
-            Mock<ICustomerService> customerService = new();
-
-            ServiceSetup(customerService);
+            Mock<ICustomerService> mockCustomerService = new();
+            Mock<ILoggerFactory> mockLoggerFactory = new();
+            Mock<IMemoryCache> mockCache = new();
+      
+            //Setup Get MemoryCache
+mockCache.Setup(x => x.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
+                .Returns(false);
+            mockCache.Setup(x => x.Set(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<MemoryCacheEntryOptions>()));
+            
+            // Setup loggerFactory
+            mockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger<CustomerController>>().Object);
+            ServiceSetup(mockCustomerService);
 
             if (_mapper == null)
             {
@@ -33,25 +44,36 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 _mapper = mapper;
             }
 
-            _customerController = new CustomerSController(customerService.Object, _mapper);
+            _customerController = new CustomerController(mockCustomerService.Object, _mapper, mockLoggerFactory.Object, mockCache.Object);
         }
 
         private static void ServiceSetup(Mock<ICustomerService> customerService)
         {
-            customerService.Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>()))
+            customerService
+                .Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>()))
                 .Returns(CustomerMocks.GetTestCustomersAsync());
-            customerService.Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>()))
+
+            customerService
+                .Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>()))
                 .Returns(CustomerMocks.GetTestCustomerAsync());
-            customerService.Setup(service => service.GetCustomerAsync(It.IsAny<int>()))
+
+            customerService
+                .Setup(service => service.GetCustomerAsync(It.IsAny<int>()))
                 .Returns(CustomerMocks.GetTestCustomerAsync());
-            // return null if id is 0
-            customerService.Setup(service => service.GetCustomerAsync(It.Is<int>(id => id == 0)))
+
+            customerService
+                .Setup(service => service.GetCustomerAsync(It.Is<int>(id => id == 0)))
                 .Returns(Task.FromResult<Customer>(null));
-            // return null if id is 0 in GetExistsAsync
-            customerService.Setup(service => service.GetExistsAsync(It.Is<int>(id => id == 0)))
+
+            customerService
+                .Setup(service => service.GetExistsAsync(It.Is<int>(id => id == 0)))
                 .Returns(Task.FromResult(false));
-            customerService.Setup(service => service.GetExistsAsync(It.IsAny<int>())).Returns(Task.FromResult(true));
+
+            customerService
+                .Setup(service => service.GetExistsAsync(It.IsAny<int>()))
+                .Returns(Task.FromResult(true));
         }
+
 
         [Fact]
         public async Task GetAllCustomersAsyncShouldReturnAllCustomers()
