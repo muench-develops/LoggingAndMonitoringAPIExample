@@ -26,6 +26,12 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddLogging(loggingBuilder =>
 {
+    loggingBuilder.Configure(options =>
+    {
+        options.ActivityTrackingOptions = ActivityTrackingOptions.SpanId 
+        | ActivityTrackingOptions.TraceId 
+        | ActivityTrackingOptions.ParentId;
+    });
     loggingBuilder.AddConsole();
     loggingBuilder.AddDebug();
     loggingBuilder.AddEventSourceLogger();
