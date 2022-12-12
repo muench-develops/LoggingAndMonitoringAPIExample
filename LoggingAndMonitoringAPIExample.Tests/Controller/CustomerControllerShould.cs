@@ -9,6 +9,7 @@ using LoggingAndMonitoringAPIExample.Logic.Services;
 using LoggingAndMonitoringAPIExample.Tests.Mocks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 
@@ -23,12 +24,11 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         {
             Mock<ICustomerService> mockCustomerService = new();
             Mock<ILoggerFactory> mockLoggerFactory = new();
-            Mock<IMemoryCache> mockCache = new();
-      
-            //Setup Get MemoryCache
-mockCache.Setup(x => x.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny))
-                .Returns(false);
-            mockCache.Setup(x => x.Set(It.IsAny<string>(), It.IsAny<object>(), It.IsAny<MemoryCacheEntryOptions>()));
+
+            var services = new ServiceCollection();
+            services.AddMemoryCache();
+            var serviceProvider = services.BuildServiceProvider();
+            var memoryCache = serviceProvider.GetService<IMemoryCache>();
             
             // Setup loggerFactory
             mockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger<CustomerController>>().Object);
@@ -44,7 +44,7 @@ mockCache.Setup(x => x.TryGetValue(It.IsAny<string>(), out It.Ref<object>.IsAny)
                 _mapper = mapper;
             }
 
-            _customerController = new CustomerController(mockCustomerService.Object, _mapper, mockLoggerFactory.Object, mockCache.Object);
+            _customerController = new CustomerController(mockCustomerService.Object, _mapper, mockLoggerFactory.Object, memoryCache);
         }
 
         private static void ServiceSetup(Mock<ICustomerService> customerService)
