@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Controllers;
+using LoggingAndMonitoringAPIExample.Handler;
 using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
@@ -17,38 +18,87 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 {
     public class CustomerControllerShould
     {
-        private readonly IMapper _mapper;
         private readonly CustomerController _customerController;
-        //Mock loggerFactory
+
         public CustomerControllerShould()
         {
-            Mock<ICustomerService> mockCustomerService = new();
-            Mock<ILoggerFactory> mockLoggerFactory = new();
+            // Create a mock object that implements the CustomerControllerDependencyHandler interface
+            var mockDependencyHandler = new Mock<CustomerControllerDependencyHandler>();
 
-            var services = new ServiceCollection();
-            services.AddMemoryCache();
-            var serviceProvider = services.BuildServiceProvider();
-            var memoryCache = serviceProvider.GetService<IMemoryCache>();
-            
-            // Setup loggerFactory
-            mockLoggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger<CustomerController>>().Object);
-            ServiceSetup(mockCustomerService);
+            // Set up the mock object to return the desired values for the dependencies
+            SetUpMemoryCache(mockDependencyHandler);
 
-            if (_mapper == null)
+            // Create a mock object that implements the ICustomerService interface
+            var mockCustomerService = SetupCustomerService();
+
+            // Set up the mock object to return the desired value when the GetAllCustomersAsync method is called
+
+            mockDependencyHandler
+                .Setup(x => x.GetCustomerService())
+                .Returns(mockCustomerService.Object);
+
+            var mapper = SetupMapper();
+
+            mockDependencyHandler
+                .Setup(x => x.GetMapper())
+                .Returns(mapper);
+
+            Mock<ILoggerFactory> mockLoggerFactory = SetupMockLoggerFactory();
+
+            mockDependencyHandler
+                .Setup(x => x.GetLoggerFactory())
+                .Returns(mockLoggerFactory.Object);
+
+            // Inject the mock object into the CustomerController constructor
+            _customerController = new CustomerController(mockDependencyHandler.Object);
+        }
+        
+        private static IMapper SetupMapper()
+        {
+            IMapper iMapper = null;
+            if (iMapper == null)
             {
                 var mappingConfig = new MapperConfiguration(mc =>
                 {
                     mc.AddProfile(new CustomerMappingProfile());
                 });
                 var mapper = mappingConfig.CreateMapper();
-                _mapper = mapper;
+                iMapper = mapper;
             }
-
-            _customerController = new CustomerController(mockCustomerService.Object, _mapper, mockLoggerFactory.Object, memoryCache);
+            return iMapper;
         }
 
-        private static void ServiceSetup(Mock<ICustomerService> customerService)
+        private static void SetUpMemoryCache(Mock<CustomerControllerDependencyHandler> mockDependencyHandler)
         {
+            var services = new ServiceCollection();
+            services.AddMemoryCache();
+            var serviceProvider = services.BuildServiceProvider();
+
+            var memoryCache = serviceProvider.GetService<IMemoryCache>();
+
+            mockDependencyHandler
+                .Setup(x => x.GetCache())
+                .Returns(memoryCache);
+
+        }
+
+        private static Mock<ILoggerFactory> SetupMockLoggerFactory()
+        {
+            // Create a mock object that implements the ILoggerFactory interface
+            var mockLoggerFactory = new Mock<ILoggerFactory>();
+
+            // Set up the mock object to return a mock logger when the CreateLogger method is called
+            mockLoggerFactory
+                .Setup(x => x.CreateLogger(It.IsAny<string>()))
+                .Returns(Mock.Of<ILogger<CustomerController>>());
+            return mockLoggerFactory;
+        }
+
+        private static Mock<ICustomerService> SetupCustomerService()
+        {
+            Mock<ICustomerService> customerService = new Mock<ICustomerService>();
+
+
             customerService
                 .Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>()))
                 .Returns(CustomerMocks.GetTestCustomersAsync());
@@ -72,6 +122,8 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             customerService
                 .Setup(service => service.GetExistsAsync(It.IsAny<int>()))
                 .Returns(Task.FromResult(true));
+
+            return customerService;
         }
 
 
@@ -81,7 +133,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             var result = await _customerController.GetCustomers(new CustomerResourceParameters());
 
             //result should be 200
-            
+
             //Assert
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
@@ -113,9 +165,9 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
             result.Result.Should().BeOfType<CreatedAtRouteResult>();
             var createdAtRouteResult = result.Result as CreatedAtRouteResult;
-            
+
             createdAtRouteResult?.StatusCode.Should().Be(201);
-            createdAtRouteResult?.Value.Should().BeEquivalentTo(expected);            
+            createdAtRouteResult?.Value.Should().BeEquivalentTo(expected);
         }
 
         [Fact]

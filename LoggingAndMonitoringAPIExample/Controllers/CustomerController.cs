@@ -6,6 +6,7 @@ using LoggingAndMonitoringAPIExample.Logic.Models;
 using AutoMapper;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using Microsoft.Extensions.Caching.Memory;
+using LoggingAndMonitoringAPIExample.Handler;
 
 namespace LoggingAndMonitoringAPIExample.Controllers
 {
@@ -13,17 +14,13 @@ namespace LoggingAndMonitoringAPIExample.Controllers
     [Route("api/[controller]")]
     public class CustomerController : ControllerBase
     {
-        private readonly ICustomerService _customerService;
-        private readonly IMapper _mapper;
+        private readonly CustomerControllerDependencyHandler _dependencyHandler;
         private readonly ILogger<CustomerController> _logger;
-        private readonly IMemoryCache _cache;
 
-        public CustomerController(ICustomerService customerService, IMapper mapper, ILoggerFactory loggerFactory, IMemoryCache cache)
+        public CustomerController(CustomerControllerDependencyHandler dependencyHandler)
         {
-            _customerService = customerService ?? throw new ArgumentNullException(nameof(customerService));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
-            _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _logger = loggerFactory.CreateLogger<CustomerController>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            _dependencyHandler = dependencyHandler;
+            _logger = dependencyHandler.GetLoggerFactory().CreateLogger<CustomerController>();
         }
 
 
@@ -43,13 +40,13 @@ namespace LoggingAndMonitoringAPIExample.Controllers
                 AddCustomersToCache(customerResourceParameters, customers);
             }
 
-            return Ok(_mapper.Map<IEnumerable<CustomerDto>>(customers));
+            return Ok(_dependencyHandler.GetMapper().Map<IEnumerable<CustomerDto>>(customers));
         }
 
         private IEnumerable<Customer>? GetCustomersFromCache(CustomerResourceParameters customerResourceParameters)
         {
             var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
-            var cachedCustomers = _cache.Get<IEnumerable<Customer>>(cacheKey);
+            var cachedCustomers = _dependencyHandler.GetCache().Get<IEnumerable<Customer>>(cacheKey);
 
             if (cachedCustomers == null) return null;
             _logger.LogInformation("Returning cached customers");
@@ -59,13 +56,13 @@ namespace LoggingAndMonitoringAPIExample.Controllers
 
         private async Task<IEnumerable<Customer>> GetCustomersFromService(CustomerResourceParameters customerResourceParameters)
         {
-            return await _customerService.GetAllCustomersAsync(customerResourceParameters);
+            return await _dependencyHandler.GetCustomerService().GetAllCustomersAsync(customerResourceParameters);
         }
 
         private void AddCustomersToCache(CustomerResourceParameters customerResourceParameters, IEnumerable<Customer> customers)
         {
             var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
-            _cache.Set(cacheKey, customers, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(60)));
+            _dependencyHandler.GetCache().Set(cacheKey, customers, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(60)));
         }
 
 
@@ -75,11 +72,11 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         {
             _logger.LogInformation("Executing {Action} with parameters {Parameters}", nameof(GetCustomer), System.Text.Json.JsonSerializer.Serialize(customerId));
             
-            var customer = await _customerService.GetCustomerAsync(customerId);
+            var customer = await _dependencyHandler.GetCustomerService().GetCustomerAsync(customerId);
 
             if (customer != null)
             {
-                return Ok(_mapper.Map<CustomerDto>(customer));
+                return Ok(_dependencyHandler.GetMapper().Map<CustomerDto>(customer));
             }
 
             return NotFound();
@@ -91,12 +88,12 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         {
             _logger.LogInformation("Creating new customer with request {@CustomerRequest}", customerRequest);
 
-            var customerEntity = _mapper.Map<Customer>(customerRequest);
-            var customer = await _customerService.CreateCustomerAsync(customerEntity);
+            var customerEntity = _dependencyHandler.GetMapper().Map<Customer>(customerRequest);
+            var customer = await _dependencyHandler.GetCustomerService().CreateCustomerAsync(customerEntity);
 
-            if (await _customerService.GetExistsAsync(customer.Id))
+            if (await _dependencyHandler.GetCustomerService().GetExistsAsync(customer.Id))
             {
-                var customerToReturn = _mapper.Map<CustomerDto>(customer);
+                var customerToReturn = _dependencyHandler.GetMapper().Map<CustomerDto>(customer);
                 return CreatedAtRoute("GetCustomer", new
                 {
                     customerId = customerToReturn.Id

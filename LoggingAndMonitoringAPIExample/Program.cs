@@ -1,8 +1,11 @@
 using AutoMapper;
+using LoggingAndMonitoringAPIExample.Handler;
 using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -29,7 +32,8 @@ builder.Services.AddLogging(loggingBuilder =>
 });
 
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-
+builder.Services.AddSingleton<ILoggerFactory, LoggerFactory>();
+builder.Services.AddScoped<IMemoryCache, MemoryCache>();
 // Add Automapper
 var mapperConfig = new MapperConfiguration(cfg =>
 {
@@ -37,6 +41,9 @@ var mapperConfig = new MapperConfiguration(cfg =>
 });
 var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
+
+builder.Services.AddScoped<CustomerControllerDependencyHandler>();
+
 
 // Add in Memory Db
 builder.Services.AddDbContext<CustomerDbContext>(options => options.UseInMemoryDatabase("CustomerInMemoryDb"));
