@@ -1,4 +1,5 @@
-﻿using FluentAssertions;
+﻿using Castle.Core.Logging;
+using FluentAssertions;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
@@ -16,8 +17,8 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         public CustomerServiceShould()
         {
             var customerSeedDataFixture = new CustomerSeedDataFixture();
-            Mock<ILoggerFactory> loggerFactory = new();
-            loggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger>().Object);
+            Mock<Microsoft.Extensions.Logging.ILoggerFactory> loggerFactory = new();
+            loggerFactory.Setup(x => x.CreateLogger(It.IsAny<string>())).Returns(new Mock<ILogger<ICustomerService>>().Object);
             
             _customerService = new CustomerService(customerSeedDataFixture.DbContext, loggerFactory.Object);
         }
@@ -140,6 +141,15 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
 
             result.Should().HaveCount(4);
         }
-        
+
+        [Fact]
+        public async Task GetCustomersAsync()
+        {
+            var ids = new List<int> { 1, 2, 3 };
+
+            var result = await _customerService.GetCustomersAsync(ids);
+
+            result.Should().HaveCount(3);
+        }
     }
 }

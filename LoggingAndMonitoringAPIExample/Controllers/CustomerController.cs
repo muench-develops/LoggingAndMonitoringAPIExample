@@ -7,6 +7,8 @@ using AutoMapper;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using Microsoft.Extensions.Caching.Memory;
 using LoggingAndMonitoringAPIExample.Handler;
+using Microsoft.Extensions.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace LoggingAndMonitoringAPIExample.Controllers
 {
@@ -24,6 +26,7 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         public CustomerController(CustomerControllerDependencyHandler dependencyHandler)
         {
             _dependencyHandler = dependencyHandler;
+            
             _logger = dependencyHandler.GetLoggerFactory().CreateLogger<CustomerController>();
             _mapper = dependencyHandler.GetMapper();
             _customerService = dependencyHandler.GetCustomerService();
@@ -37,7 +40,7 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         [ResponseCache(Duration = 60)]
         public async Task<ActionResult<IEnumerable<CustomerDto>>> GetCustomers([FromQuery] CustomerResourceParameters customerResourceParameters)
         {
-            _logger.LogInformation("Executing {Action} with parameters: {@Parameters}", nameof(GetCustomers), customerResourceParameters);
+            _logger.LogInformation("Executing {Action} with parameters: {@Parameters}", nameof(GetCustomers), JsonSerializer.Serialize(customerResourceParameters));
     
             var customers = GetCustomersFromCache(customerResourceParameters);
 
@@ -77,15 +80,17 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         [Produces("application/json", "application/xml", Type = typeof(CustomerDto))]
         public async Task<ActionResult<CustomerDto>> GetCustomer(int customerId)
         {
-            _logger.LogInformation("Executing {Action} with parameters {Parameters}", nameof(GetCustomer), System.Text.Json.JsonSerializer.Serialize(customerId));
+            _logger.LogInformation("Executing {Action} with parameters {Parameters}", nameof(GetCustomer), JsonSerializer.Serialize(customerId));
             
             var customer = await _customerService.GetCustomerAsync(customerId);
 
             if (customer != null)
             {
-                return Ok(_mapper.Map<CustomerDto>(customer));
-            }
+                var result = _mapper.Map<CustomerDto>(customer);
 
+                return Ok(result);
+            }
+            
             return NotFound();
         }
 
@@ -93,7 +98,7 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         [Produces("application/json", "application/xml", Type = typeof(CustomerDto))]
         public async Task<ActionResult<CustomerDto>> CreateCustomer([FromBody] CustomerForCreationDto customerRequest)
         {
-            _logger.LogInformation("Creating new customer with request {@CustomerRequest}", customerRequest);
+            _logger.LogInformation("Creating new customer with request {@CustomerRequest}", JsonSerializer.Serialize(customerRequest));
 
             var customerEntity = _mapper.Map<Customer>(customerRequest);
             var customer = await _customerService.CreateCustomerAsync(customerEntity);

@@ -52,7 +52,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             // Inject the mock object into the CustomerController constructor
             _customerController = new CustomerController(mockDependencyHandler.Object);
         }
-        
+
         private static IMapper SetupMapper()
         {
             IMapper iMapper = null;
@@ -96,7 +96,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
         private static Mock<ICustomerService> SetupCustomerService()
         {
-            Mock<ICustomerService> customerService = new Mock<ICustomerService>();
+            Mock<ICustomerService> customerService = new();
 
 
             customerService
@@ -110,6 +110,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             customerService
                 .Setup(service => service.GetCustomerAsync(It.IsAny<int>()))
                 .Returns(CustomerMocks.GetTestCustomerAsync());
+
 
             customerService
                 .Setup(service => service.GetCustomerAsync(It.Is<int>(id => id == 0)))
@@ -191,5 +192,6 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             var notFoundResult = result.Result as NotFoundResult;
             notFoundResult?.StatusCode.Should().Be(404);
         }
+        
     }
 }

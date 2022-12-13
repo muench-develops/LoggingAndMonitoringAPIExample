@@ -107,7 +107,19 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
                 JsonSerializer.Serialize(customers));
 
             await _customerContext.Customers.AddRangeAsync(customers);
+            await _customerContext.SaveChangesAsync();
             return customers;
+        }
+
+        
+        public async Task<IEnumerable<Customer>> GetCustomersAsync(IEnumerable<int> customerIds)
+        {
+            _logger.LogInformation("Executing {Action} {Parameters}", nameof(GetCustomersAsync),
+                 JsonSerializer.Serialize(customerIds));
+
+            var result = await _customerContext.Customers.Where(x => customerIds.Contains(x.Id)).ToListAsync();
+
+            return result;
         }
     }
 }

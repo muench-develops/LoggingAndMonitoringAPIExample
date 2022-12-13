@@ -9,6 +9,21 @@ using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
+{
+    loggingBuilder.ClearProviders();
+    loggingBuilder.Configure(options =>
+    {
+        options.ActivityTrackingOptions = ActivityTrackingOptions.SpanId
+        | ActivityTrackingOptions.TraceId
+        | ActivityTrackingOptions.ParentId;
+    });
+    //loggingBuilder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+    loggingBuilder.AddConsole();
+    loggingBuilder.AddDebug();
+    loggingBuilder.AddEventSourceLogger();
+});
+
 
 // Add services to the container.
 builder.Services.AddControllers(cfg =>
@@ -22,19 +37,6 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "My Api", Version = "v1" });
-});
-
-builder.Services.AddLogging(loggingBuilder =>
-{
-    loggingBuilder.Configure(options =>
-    {
-        options.ActivityTrackingOptions = ActivityTrackingOptions.SpanId 
-        | ActivityTrackingOptions.TraceId 
-        | ActivityTrackingOptions.ParentId;
-    });
-    loggingBuilder.AddConsole();
-    loggingBuilder.AddDebug();
-    loggingBuilder.AddEventSourceLogger();
 });
 
 builder.Services.AddScoped<ICustomerService, CustomerService>();
