@@ -80,7 +80,7 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         [Produces("application/json", "application/xml", Type = typeof(CustomerDto))]
         public async Task<ActionResult<CustomerDto>> GetCustomer(int customerId)
         {
-            _logger.LogInformation("Executing {Action} with parameters {Parameters}", nameof(GetCustomer), JsonSerializer.Serialize(customerId));
+            _logger.LogInformation("Executing {Action} with Id {customerId}", nameof(GetCustomer), customerId);
             
             var customer = await _customerService.GetCustomerAsync(customerId);
 
@@ -90,7 +90,9 @@ namespace LoggingAndMonitoringAPIExample.Controllers
 
                 return Ok(result);
             }
-            
+
+            _logger.LogWarning("No customer found with Id {customerId}", customerId);
+
             return NotFound();
         }
 

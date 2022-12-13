@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using LoggingAndMonitoringAPIExample.Logic.Context;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Parameters;
@@ -10,18 +11,18 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
     public class CustomerService : ICustomerService
     {
         private readonly CustomerDbContext _customerContext;
-        private readonly ILogger<CustomerService> _logger;
+        private readonly ILogger _logger;
 
         public CustomerService(CustomerDbContext customerContext, ILoggerFactory loggerFactory)
         {
             _customerContext = customerContext;
-            _logger = loggerFactory.CreateLogger<CustomerService>();
+            _logger = loggerFactory.CreateLogger("CustomerService");
         }
 
         public async Task<IEnumerable<Customer>> GetAllCustomersAsync(
             CustomerResourceParameters customerResourceParameters)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(GetAllCustomersAsync),
+            _logger.LogDebug("Executing {Action} {Parameters}", nameof(GetAllCustomersAsync),
                 JsonSerializer.Serialize(customerResourceParameters));
 
             var collection = _customerContext.Customers as IQueryable<Customer>;
@@ -76,7 +77,9 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
 
         public async Task<Customer> CreateCustomerAsync(Customer customer)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(CreateCustomerAsync),
+            _logger.LogDebug(
+                "Executing {Action} {Parameters}",
+                nameof(CreateCustomerAsync),
                 JsonSerializer.Serialize(customer));
 
             var result = await _customerContext.Customers.AddAsync(customer);
@@ -86,24 +89,37 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
 
         public async Task<Customer?> GetCustomerAsync(int id)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(GetCustomerAsync),
-                JsonSerializer.Serialize(id));
+            _logger.LogDebug("Executing {Action} {Parameters}", nameof(GetCustomerAsync),
+                id);
 
             var result = await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == id);
             return result;
         }
 
+        public Customer GetCustomer(int id)
+        {
+            var timer = new Stopwatch();
+            timer.Start();
+            var result =  _customerContext.Customers.FirstOrDefault(x => x.Id == id);
+            timer.Stop();
+
+            _logger.LogDebug("Query took {Time} ms for {Action} and Id {Id}", timer.ElapsedMilliseconds,
+                nameof(GetCustomer), id);
+
+            return result;
+        }
+
         public async Task<bool> GetExistsAsync(int customerId)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(GetExistsAsync),
-                JsonSerializer.Serialize(customerId));
+            _logger.LogDebug("Executing {Action} {Parameters}", nameof(GetExistsAsync),
+                customerId);
 
             return await _customerContext.Customers.FirstOrDefaultAsync(x => x.Id == customerId) != null;
         }
 
         public async Task<IEnumerable<Customer>> CreateCustomersAsync(IEnumerable<Customer> customers)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(CreateCustomersAsync),
+            _logger.LogDebug("Executing {Action} {Parameters}", nameof(CreateCustomersAsync),
                 JsonSerializer.Serialize(customers));
 
             await _customerContext.Customers.AddRangeAsync(customers);
@@ -114,8 +130,8 @@ namespace LoggingAndMonitoringAPIExample.Logic.Services
         
         public async Task<IEnumerable<Customer>> GetCustomersAsync(IEnumerable<int> customerIds)
         {
-            _logger.LogInformation("Executing {Action} {Parameters}", nameof(GetCustomersAsync),
-                 JsonSerializer.Serialize(customerIds));
+            _logger.LogDebug("Executing {Action} {Parameters}", nameof(GetCustomersAsync),
+                 customerIds);
 
             var result = await _customerContext.Customers.Where(x => customerIds.Contains(x.Id)).ToListAsync();
 

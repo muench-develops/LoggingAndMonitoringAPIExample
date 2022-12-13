@@ -7,8 +7,14 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
+var path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+var tracePath = Path.Join(path, $"Log_CustomerService_{DateTime.Now.ToString("yyyyMMdd-HHmm")}.txt");
+Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
+Trace.AutoFlush = true;
+
 builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
 {
     loggingBuilder.ClearProviders();
@@ -18,7 +24,7 @@ builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
         | ActivityTrackingOptions.TraceId
         | ActivityTrackingOptions.ParentId;
     });
-    //loggingBuilder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
+    loggingBuilder.AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
     loggingBuilder.AddConsole();
     loggingBuilder.AddDebug();
     loggingBuilder.AddEventSourceLogger();
