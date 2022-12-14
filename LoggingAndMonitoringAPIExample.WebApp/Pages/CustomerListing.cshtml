@@ -1,0 +1,30 @@
+﻿@page
+@model LoggingAndMonitoringAPIExample.WebApp.Pages.CustomerListingModel
+@{
+    ViewData["Title"] = "Customer Listing";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Customer Listing</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th scope="col">Customer First Name</th>
+                <th scope="col">Customer Last Name</th>
+                <th scope="col">Customer Email</th>
+                <th scope="col">Customer Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in Model.Customers)
+            {
+                <tr>
+                    <td>@customer.FirstName</td>
+                    <td>@customer.LastName</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.Phone</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

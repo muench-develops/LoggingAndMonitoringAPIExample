@@ -5,9 +5,11 @@ VisualStudioVersion = 17.4.33103.184
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingAndMonitoringAPIExample", "LoggingAndMonitoringAPIExample\LoggingAndMonitoringAPIExample.csproj", "{E3ACAF9E-D9BC-47F1-A6E2-BC08FA24BAE2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingAndMonitoringAPIExample.Logic", "LoggingAndMonitoringAPIExample.Logic\LoggingAndMonitoringAPIExample.Logic.csproj", "{0B22BC58-DBB9-44C2-80E2-FF854FD7ED63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingAndMonitoringAPIExample.Logic", "LoggingAndMonitoringAPIExample.Logic\LoggingAndMonitoringAPIExample.Logic.csproj", "{0B22BC58-DBB9-44C2-80E2-FF854FD7ED63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingAndMonitoringAPIExample.Tests", "LoggingAndMonitoringAPIExample.Tests\LoggingAndMonitoringAPIExample.Tests.csproj", "{B892B7C0-1778-40BF-98CE-62978D6F2318}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoggingAndMonitoringAPIExample.Tests", "LoggingAndMonitoringAPIExample.Tests\LoggingAndMonitoringAPIExample.Tests.csproj", "{B892B7C0-1778-40BF-98CE-62978D6F2318}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoggingAndMonitoringAPIExample.WebApp", "LoggingAndMonitoringAPIExample.WebApp\LoggingAndMonitoringAPIExample.WebApp.csproj", "{AFA45010-6A40-42D4-9D62-17BF801BC34F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{B892B7C0-1778-40BF-98CE-62978D6F2318}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B892B7C0-1778-40BF-98CE-62978D6F2318}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B892B7C0-1778-40BF-98CE-62978D6F2318}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AFA45010-6A40-42D4-9D62-17BF801BC34F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AFA45010-6A40-42D4-9D62-17BF801BC34F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AFA45010-6A40-42D4-9D62-17BF801BC34F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AFA45010-6A40-42D4-9D62-17BF801BC34F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,4 +1,6 @@
 using AutoMapper;
+using Hellang.Middleware.ProblemDetails;
+using Hellang.Middleware.ProblemDetails.Mvc;
 using LoggingAndMonitoringAPIExample.Handler;
 using LoggingAndMonitoringAPIExample.Logic;
 using LoggingAndMonitoringAPIExample.Logic.Context;
@@ -14,6 +16,16 @@ var path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationD
 var tracePath = Path.Join(path, $"Log_CustomerService_{DateTime.Now.ToString("yyyyMMdd-HHmm")}.txt");
 Trace.Listeners.Add(new TextWriterTraceListener(tracePath));
 Trace.AutoFlush = true;
+
+builder.Services.AddProblemDetails(opts =>
+{
+    opts.IncludeExceptionDetails = (ctx, ex) => false;
+    opts.OnBeforeWriteDetails = (ctx, dtls) =>
+    {
+        if (dtls.Status == 500)
+            dtls.Detail = "An error occured. Use Trace Id when contacting us.";
+    };
+});
 
 builder.Host.ConfigureLogging((hostingContext, loggingBuilder) =>
 {
@@ -48,6 +60,7 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddSingleton<ILoggerFactory, LoggerFactory>();
 builder.Services.AddScoped<IMemoryCache, MemoryCache>();
+
 // Add Automapper
 var mapperConfig = new MapperConfiguration(cfg =>
 {
@@ -56,7 +69,7 @@ var mapperConfig = new MapperConfiguration(cfg =>
 var mapper = mapperConfig.CreateMapper();
 builder.Services.AddSingleton(mapper);
 
-builder.Services.AddScoped<CustomerControllerDependencyHandler>();
+builder.Services.AddScoped<CustomerDependencyHandler>();
 
 
 // Add in Memory Db
@@ -75,14 +88,7 @@ if (app.Environment.IsDevelopment())
 }
 else
 {
-    app.UseExceptionHandler(appBuilder =>
-    {
-        appBuilder.Run(async context =>
-        {
-            context.Response.StatusCode = 500;
-            await context.Response.WriteAsync("An unexpected fault happend. Try again later.");
-        });
-    });
+    app.UseProblemDetails();
 }
 
 app.UseResponseCaching();

@@ -23,13 +23,10 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         public CustomerControllerShould()
         {
             // Create a mock object that implements the CustomerControllerDependencyHandler interface
-            var mockDependencyHandler = new Mock<CustomerControllerDependencyHandler>();
-
-            // Set up the mock object to return the desired values for the dependencies
-            SetUpMemoryCache(mockDependencyHandler);
+            var mockDependencyHandler = new Mock<CustomerDependencyHandler>();
 
             // Create a mock object that implements the ICustomerService interface
-            var mockCustomerService = SetupCustomerService();
+            var mockCustomerService = ServiceMocks.SetupCustomerService();
 
             // Set up the mock object to return the desired value when the GetAllCustomersAsync method is called
 
@@ -37,13 +34,13 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 .Setup(x => x.GetCustomerService())
                 .Returns(mockCustomerService.Object);
 
-            var mapper = SetupMapper();
+            var mapper = ServiceMocks.SetupMapper();
 
             mockDependencyHandler
                 .Setup(x => x.GetMapper())
                 .Returns(mapper);
 
-            Mock<ILoggerFactory> mockLoggerFactory = SetupMockLoggerFactory();
+            Mock<ILoggerFactory> mockLoggerFactory = ServiceMocks.SetupMockLoggerFactory();
 
             mockDependencyHandler
                 .Setup(x => x.GetLoggerFactory())
@@ -53,94 +50,8 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
             _customerController = new CustomerController(mockDependencyHandler.Object);
         }
 
-        private static IMapper SetupMapper()
-        {
-            IMapper iMapper = null;
-            if (iMapper == null)
-            {
-                var mappingConfig = new MapperConfiguration(mc =>
-                {
-                    mc.AddProfile(new CustomerMappingProfile());
-                });
-                var mapper = mappingConfig.CreateMapper();
-                iMapper = mapper;
-            }
-            return iMapper;
-        }
-
-        private static void SetUpMemoryCache(Mock<CustomerControllerDependencyHandler> mockDependencyHandler)
-        {
-            var services = new ServiceCollection();
-            services.AddMemoryCache();
-            var serviceProvider = services.BuildServiceProvider();
-
-            var memoryCache = serviceProvider.GetService<IMemoryCache>();
-
-            mockDependencyHandler
-                .Setup(x => x.GetCache())
-                .Returns(memoryCache);
-
-        }
-
-        private static Mock<ILoggerFactory> SetupMockLoggerFactory()
-        {
-            // Create a mock object that implements the ILoggerFactory interface
-            var mockLoggerFactory = new Mock<ILoggerFactory>();
-
-            // Set up the mock object to return a mock logger when the CreateLogger method is called
-            mockLoggerFactory
-                .Setup(x => x.CreateLogger(It.IsAny<string>()))
-                .Returns(Mock.Of<ILogger<CustomerController>>());
-            return mockLoggerFactory;
-        }
-
-        private static Mock<ICustomerService> SetupCustomerService()
-        {
-            Mock<ICustomerService> customerService = new();
 
 
-            customerService
-                .Setup(service => service.GetAllCustomersAsync(It.IsAny<CustomerResourceParameters>()))
-                .Returns(CustomerMocks.GetTestCustomersAsync());
-
-            customerService
-                .Setup(service => service.CreateCustomerAsync(It.IsAny<Customer>()))
-                .Returns(CustomerMocks.GetTestCustomerAsync());
-
-            customerService
-                .Setup(service => service.GetCustomerAsync(It.IsAny<int>()))
-                .Returns(CustomerMocks.GetTestCustomerAsync());
-
-
-            customerService
-                .Setup(service => service.GetCustomerAsync(It.Is<int>(id => id == 0)))
-                .Returns(Task.FromResult<Customer>(null));
-
-            customerService
-                .Setup(service => service.GetExistsAsync(It.Is<int>(id => id == 0)))
-                .Returns(Task.FromResult(false));
-
-            customerService
-                .Setup(service => service.GetExistsAsync(It.IsAny<int>()))
-                .Returns(Task.FromResult(true));
-
-            return customerService;
-        }
-
-
-        [Fact]
-        public async Task GetAllCustomersAsyncShouldReturnAllCustomers()
-        {
-            var result = await _customerController.GetCustomers(new CustomerResourceParameters());
-
-            //result should be 200
-
-            //Assert
-            result.Result.Should().BeOfType<OkObjectResult>();
-            var okResult = result.Result as OkObjectResult;
-            okResult?.StatusCode.Should().Be(200);
-            okResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
-        }
 
         [Fact]
         public async Task CreateCustomerAsyncShould()

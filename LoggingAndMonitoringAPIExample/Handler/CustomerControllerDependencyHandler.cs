@@ -4,16 +4,16 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace LoggingAndMonitoringAPIExample.Handler
 {
-    public class CustomerControllerDependencyHandler
+    public class CustomerDependencyHandler
     {
         private readonly ICustomerService _customerService;
         private readonly IMapper _mapper;
         private readonly ILoggerFactory _loggerFactory;
         private readonly IMemoryCache _cache;
 
-        public CustomerControllerDependencyHandler() { }
+        public CustomerDependencyHandler() { }
 
-        public CustomerControllerDependencyHandler(
+        public CustomerDependencyHandler(
             ICustomerService customerService,
             IMapper mapper,
             ILoggerFactory loggerFactory,
