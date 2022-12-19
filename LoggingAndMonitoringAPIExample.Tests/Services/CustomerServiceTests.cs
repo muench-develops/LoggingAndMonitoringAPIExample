@@ -10,11 +10,11 @@ using Moq;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Services
 {
-    public class CustomerServiceShould : IClassFixture<CustomerSeedDataFixture>
+    public class CustomerServiceTests : IClassFixture<CustomerSeedDataFixture>
     {
         private readonly ICustomerService _customerService;
 
-        public CustomerServiceShould()
+        public CustomerServiceTests()
         {
             var customerSeedDataFixture = new CustomerSeedDataFixture();
             Mock<Microsoft.Extensions.Logging.ILoggerFactory> loggerFactory = new();
@@ -24,14 +24,14 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
         
         [Fact]
-        public async Task GetAllCustomersAsyncShouldAll()
+        public async Task GetAllCustomersAsync_WithNoFilter_ReturnsAllCustomers()
         {
             var customers = await _customerService.GetAllCustomersAsync(new CustomerResourceParameters());
             customers.ToList().Count.Should().Be(4);
         }
 
         [Fact]
-        public async Task GetAllCustomersAsyncShouldReturnOnlyFirstnameJane()
+        public async Task GetAllCustomersAsync_WithFirstNameJaneFilter_ReturnsOnlyFirstNameJane()
         {
             var customerResourceParameters = new CustomerResourceParameters
             {
@@ -43,19 +43,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task GetAllCustomersAsyncShouldReturnOnlyLastNameMoe()
-        {
-            var customerResourceParameters = new CustomerResourceParameters
-            {
-                LastName = "Moe"
-            };
-
-            var customers = await _customerService.GetAllCustomersAsync(customerResourceParameters);
-            customers.ToList().Should().HaveCount(2);
-        }
-
-        [Fact]
-        public async Task GetAllCustomersAsyncShouldReturnOnlyLastNameMoeContacts()
+        public async Task GetAllCustomersAsync_WithLastNameMoeFilter_ReturnsOnlyLastNameMoe()
         {
             var customerResourceParameters = new CustomerResourceParameters
             {
@@ -84,7 +72,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task CreateCustomerAsyncShould()
+        public async Task CreateCustomerAsync_WithValidInput_ReturnsCreatedCustomer()
         {
             var customer = new Customer
             {
@@ -107,7 +95,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task GetCustomerAsyncShould()
+        public async Task GetCustomerAsync_WithCustomerIdOne_ReturnsCustomerOne()
         {
             var customerId = 1;
 
@@ -119,7 +107,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task GetExistsAsyncShould()
+        public async Task GetExistsAsync_WithCustomerIdOne_ReturnsTrue()
         {
             var customerId = 1;
             var result = await _customerService.GetExistsAsync(customerId);
@@ -127,7 +115,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task CreateCustomersAsyncShould()
+        public async Task CreateCustomersAsync_WithFourCustomers_ReturnsAllFourCreatedCustomers()
         {
             IEnumerable<Customer> customers = new List<Customer>
             {
@@ -143,7 +131,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         }
 
         [Fact]
-        public async Task GetCustomersAsync()
+        public async Task GetCustomersAsync_WithSpecificThreeIds_ReturnsSpecificCustomers()
         {
             var ids = new List<int> { 1, 2, 3 };
 

@@ -16,15 +16,17 @@ using Moq;
 
 namespace LoggingAndMonitoringAPIExample.Tests.Controller
 {
-    public class CustomerControllerShould
+    public class CustomerCollectionsControllerTests
     {
-        private readonly CustomerController _customerController;
-
-        public CustomerControllerShould()
+        private readonly IMapper _mapper;
+        private readonly CustomerCollectionsController _customerCollectionController;
+        
+        public CustomerCollectionsControllerTests()
         {
-            // Create a mock object that implements the CustomerControllerDependencyHandler interface
             var mockDependencyHandler = new Mock<CustomerDependencyHandler>();
 
+            mockDependencyHandler = ServiceMocks.SetUpMemoryCache(mockDependencyHandler);
+            
             // Create a mock object that implements the ICustomerService interface
             var mockCustomerService = ServiceMocks.SetupCustomerService();
 
@@ -34,11 +36,11 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 .Setup(x => x.GetCustomerService())
                 .Returns(mockCustomerService.Object);
 
-            var mapper = ServiceMocks.SetupMapper();
+            _mapper = ServiceMocks.SetupMapper();
 
             mockDependencyHandler
                 .Setup(x => x.GetMapper())
-                .Returns(mapper);
+                .Returns(_mapper);
 
             Mock<ILoggerFactory> mockLoggerFactory = ServiceMocks.SetupMockLoggerFactory();
 
@@ -46,63 +48,51 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
                 .Setup(x => x.GetLoggerFactory())
                 .Returns(mockLoggerFactory.Object);
 
-            // Inject the mock object into the CustomerController constructor
-            _customerController = new CustomerController(mockDependencyHandler.Object);
+            _customerCollectionController = new CustomerCollectionsController(mockDependencyHandler.Object);
         }
-
-
+        
 
 
         [Fact]
-        public async Task CreateCustomerAsyncShould()
+        public async Task CreateCustomerCollectionShould()
         {
-            var customerRequest = new CustomerForCreationDto
-            {
-                Email = "Jane.Doe@example.com",
-                FirstName = "Jane",
-                LastName = "Doe",
-                Phone = "0000 1111 1111"
-            };
-
-            var expected = new Customer
-            {
-                Id = 1,
-                Email = "Jane.Doe@example.com",
-                FirstName = "Jane",
-                LastName = "Doe",
-                Phone = "0000 1111 1111"
-            };
-
-            var result = await _customerController.CreateCustomer(customerRequest);
-
+            var entities = _mapper.Map<List<CustomerForCreationDto>>(await CustomerMocks.GetTestCustomersAsync());
+            var result = await _customerCollectionController.CreateCustomerCollection(entities);
             result.Result.Should().BeOfType<CreatedAtRouteResult>();
             var createdAtRouteResult = result.Result as CreatedAtRouteResult;
 
             createdAtRouteResult?.StatusCode.Should().Be(201);
-            createdAtRouteResult?.Value.Should().BeEquivalentTo(expected);
+            createdAtRouteResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
         }
 
         [Fact]
-        public async Task GetCustomerAsync()
+        public async Task GetCustomersShould()
         {
-            var result = await _customerController.GetCustomer(1);
+            int[] customerIds = new int[] { 1, 2, 4 };
 
+            var result = await _customerCollectionController.GetCustomers(customerIds);
             result.Result.Should().BeOfType<OkObjectResult>();
             var okResult = result.Result as OkObjectResult;
             okResult?.StatusCode.Should().Be(200);
-            okResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomerAsync());
+
+            var expected = CustomerMocks.GetTestCustomersAsync().Result.Where(x => x.Id == 1 || x.Id == 2 || x.Id == 4).ToList();
+            okResult?.Value.Should().BeEquivalentTo(expected);
         }
+
 
         [Fact]
-
-        public async Task GetCustomerShouldFail()
+        public async Task GetAllCustomersAsyncShouldReturnAllCustomers()
         {
-            var result = await _customerController.GetCustomer(0);
+            var result = await _customerCollectionController.GetCustomers(new CustomerResourceParameters());
 
-            result.Result.Should().BeOfType<NotFoundResult>();
-            var notFoundResult = result.Result as NotFoundResult;
-            notFoundResult?.StatusCode.Should().Be(404);
+            //result should be 200
+
+            //Assert
+            result.Result.Should().BeOfType<OkObjectResult>();
+            var okResult = result.Result as OkObjectResult;
+            okResult?.StatusCode.Should().Be(200);
+            okResult?.Value.Should().BeEquivalentTo(await CustomerMocks.GetTestCustomersAsync());
         }
-        
     }
 }
+
