@@ -54,7 +54,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
 
         [Fact]
-        public async Task CreateCustomerCollectionShould()
+        public async Task CreateCustomerCollection_WithNoSpecificSettings_ReturnsCreatedCollection()
         {
             var entities = _mapper.Map<List<CustomerForCreationDto>>(await CustomerMocks.GetTestCustomersAsync());
             var result = await _customerCollectionController.CreateCustomerCollection(entities);
@@ -66,7 +66,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         }
 
         [Fact]
-        public async Task GetCustomersShould()
+        public async Task GetCustomers_WithSpecifiedIds_ReturnCustomersWithId()
         {
             int[] customerIds = new int[] { 1, 2, 4 };
 
@@ -81,7 +81,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
 
         [Fact]
-        public async Task GetAllCustomersAsyncShouldReturnAllCustomers()
+        public async Task GetCustomers_WithNoFilters_ReturnAllCustomers()
         {
             var result = await _customerCollectionController.GetCustomers(new CustomerResourceParameters());
 

@@ -54,7 +54,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
 
         [Fact]
-        public async Task CreateCustomerAsyncShould()
+        public async Task CreateCustomer_WithSpecificCustomer_ReturnCreatedCustomer()
         {
             var customerRequest = new CustomerForCreationDto
             {
@@ -83,7 +83,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
         }
 
         [Fact]
-        public async Task GetCustomerAsync()
+        public async Task GetCustomer_WithId_ReturnCustomerWithId()
         {
             var result = await _customerController.GetCustomer(1);
 
@@ -95,7 +95,7 @@ namespace LoggingAndMonitoringAPIExample.Tests.Controller
 
         [Fact]
 
-        public async Task GetCustomerShouldFail()
+        public async Task GetCustomer_WithNoneExistingId_Return404NotFound()
         {
             var result = await _customerController.GetCustomer(0);
 
