@@ -109,9 +109,12 @@ namespace LoggingAndMonitoringAPIExample.Tests.Services
         [Fact]
         public async Task GetExistsAsync_WithCustomerIdOne_ReturnsTrue()
         {
+            //Arrange
             var customerId = 1;
+            //Act
             var result = await _customerService.GetExistsAsync(customerId);
-            result.Should().Be(true);
+            //Assert
+            Assert.True(result);
         }
 
         [Fact]

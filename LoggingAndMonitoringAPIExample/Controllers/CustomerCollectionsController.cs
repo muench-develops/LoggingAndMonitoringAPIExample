@@ -99,9 +99,10 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         private IEnumerable<Customer>? GetCustomersFromCache(CustomerResourceParameters customerResourceParameters)
         {
             var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
-            var cachedCustomers = _cache.Get<IEnumerable<Customer>>(cacheKey);
+            var hasCachedCustomers = _cache.TryGetValue<IEnumerable<Customer>>(cacheKey, out var cachedCustomers);
 
-            if (cachedCustomers == null) return null;
+            if (!hasCachedCustomers) return null;
+            
             _logger.LogInformation("Returning cached customers");
             return cachedCustomers;
 

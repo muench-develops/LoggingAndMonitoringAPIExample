@@ -59,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddSingleton<ILoggerFactory, LoggerFactory>();
-builder.Services.AddScoped<IMemoryCache, MemoryCache>();
+builder.Services.AddMemoryCache();
 
 // Add Automapper
 var mapperConfig = new MapperConfiguration(cfg =>
