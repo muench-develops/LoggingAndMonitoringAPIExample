@@ -1,4 +1,5 @@
-﻿using AutoMapper;
+﻿using System.Text;
+using AutoMapper;
 using LoggingAndMonitoringAPIExample.Handler;
 using LoggingAndMonitoringAPIExample.Logic.Entities;
 using LoggingAndMonitoringAPIExample.Logic.Models;
@@ -8,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using System.Text.Json;
 using System.Web.Http.ModelBinding.Binders;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace LoggingAndMonitoringAPIExample.Controllers
 {
@@ -19,14 +21,17 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<CustomerCollectionsController> _logger;
         private readonly IMemoryCache _cache;
+        private readonly IDistributedCache _distributedCache;
 
 
-        public CustomerCollectionsController(CustomerDependencyHandler dependencyHandler)
+        public CustomerCollectionsController(CustomerDependencyHandler dependencyHandler, IDistributedCache distributedCache)
         {
             _customerService = dependencyHandler.GetCustomerService();
             _mapper = dependencyHandler.GetMapper();
             _logger = dependencyHandler.GetLoggerFactory().CreateLogger<CustomerCollectionsController>();
             _cache = dependencyHandler.GetCache();
+            
+            _distributedCache = distributedCache;
         }
 
 
@@ -112,6 +117,28 @@ namespace LoggingAndMonitoringAPIExample.Controllers
         {
             var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
             _cache.Set(cacheKey, customers, new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(60)));
+        }
+        
+                
+        private async Task<IEnumerable<Customer>?> GetCustomersFromDistributedCache(CustomerResourceParameters customerResourceParameters)
+        {
+            var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
+            var distResults = await _distributedCache.GetAsync(cacheKey);
+            if(distResults == null) return null;
+            
+            var customers = JsonSerializer.Deserialize<IEnumerable<Customer>>(Encoding.UTF8.GetString(distResults));
+            return customers;
+        }
+        
+        private void AddCustomersToDistributedCache(CustomerResourceParameters customerResourceParameters, IEnumerable<Customer> customers)
+        {
+            var cacheKey = $"customer_{customerResourceParameters.FirstName}_{customerResourceParameters.LastName}_{customerResourceParameters.Email}_{customerResourceParameters.SearchQuery}";
+            
+            
+            var options = new DistributedCacheEntryOptions()
+                .SetAbsoluteExpiration(TimeSpan.FromMinutes(60));
+            
+            _distributedCache.Set(cacheKey, Encoding.UTF8.GetBytes(JsonSerializer.Serialize(customers)), options);
         }
     }
 }
